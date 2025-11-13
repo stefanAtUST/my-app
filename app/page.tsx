@@ -24,6 +24,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [darkMode, setDarkMode] = useState<boolean | null>(null);
+  const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [nextId, setNextId] = useState(201); // Start after API todos (1-200)
   const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const topCheckboxRef = useRef<HTMLInputElement | null>(null);
 
@@ -112,6 +114,33 @@ export default function Home() {
     });
   };
 
+  const handleAddTodo = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!newTodoTitle.trim()) return;
+
+    setState((prev) => {
+      if (prev.status !== 'success') return prev;
+      const newTodo: Item = {
+        id: nextId,
+        title: newTodoTitle.trim(),
+        completed: false,
+        userId: 1,
+      };
+      return { ...prev, data: [newTodo, ...prev.data] };
+    });
+
+    setNextId((prev) => prev + 1);
+    setNewTodoTitle('');
+  };
+
+  const handleDeleteTodo = (id: number) => {
+    setState((prev) => {
+      if (prev.status !== 'success') return prev;
+      const updated = prev.data.filter((item) => item.id !== id);
+      return { ...prev, data: updated };
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -144,14 +173,30 @@ export default function Home() {
         </button>
       </header>
 
-      <div className="mb-6">
+      {/* Search and Add todo form - separate left and right */}
+      <div className="mb-6 flex gap-6 items-center">
         <input
           type="text"
           placeholder="Search todos..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
+          className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
         />
+        <form onSubmit={handleAddTodo} className="flex gap-2 flex-1">
+          <input
+            type="text"
+            placeholder="Add a new todo..."
+            value={newTodoTitle}
+            onChange={(e) => setNewTodoTitle(e.target.value)}
+            className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
+          />
+          <button
+            type="submit"
+            className="px-6 py-2 rounded-lg btn hover:opacity-80 transition font-medium"
+          >
+            Add
+          </button>
+        </form>
       </div>
 
       {/* Top check/uncheck all - always show so user can check/uncheck all items */}
@@ -217,7 +262,7 @@ export default function Home() {
         )}
         {state.status === 'success' && paginatedItems.map((item) => (
           <li key={item.id} className="p-3 card rounded flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
               <input
                 type="checkbox"
                 checked={item.completed}
@@ -225,8 +270,16 @@ export default function Home() {
                 className="h-4 w-4"
                 aria-label={`Toggle ${item.title}`}
               />
-              <span>{item.title}</span>
+              <span className={item.completed ? 'line-through muted' : ''}>{item.title}</span>
             </div>
+            <button
+              onClick={() => handleDeleteTodo(item.id)}
+              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+              aria-label={`Delete ${item.title}`}
+              title="Delete todo"
+            >
+              ✕
+            </button>
           </li>
         ))}
       </ul>
