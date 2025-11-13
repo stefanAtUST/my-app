@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
-
-type Status = 'idle' | 'loading' | 'error' | 'success';
+import { useEffect, useState, useRef } from "react";
 
 interface Item {
   id: number;
@@ -21,6 +19,30 @@ export default function Home() {
   const [state, setState] = useState<State<Item[]>>({
     status: 'idle',
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Debounce search query
+  useEffect(() => {
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Filter items based on debounced query (only if search query is not empty)
+  const itemsToDisplay = state.status === 'success' && state.data ? state.data : [];
+  const filteredItems = debouncedQuery
+    ? itemsToDisplay.filter((item) =>
+      item.title.toLowerCase().includes(debouncedQuery.toLowerCase())
+    )
+    : itemsToDisplay;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,13 +63,27 @@ export default function Home() {
   }, [])
 
   return (
-    <ul>
-      {state.status === 'idle' && <li>Idle: Waiting to start fetching data.</li>}
-      {state.status === 'loading' && <li>Loading: Fetching data...</li>}
-      {state.status === 'error' && <li>Error: There was a problem fetching data.</li>}
-      {state.status === 'success' && state.data?.map((item) => (
-        <li key={item.id}>{item.title}</li>
-      ))}
-    </ul>
+    <div className="p-8">
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search todos..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <ul className="space-y-2">
+        {state.status === 'idle' && <li>Idle: Waiting to start fetching data.</li>}
+        {state.status === 'loading' && <li>Loading: Fetching data...</li>}
+        {state.status === 'error' && <li>Error: There was a problem fetching data.</li>}
+        {state.status === 'success' && filteredItems.map((item) => (
+          <li key={item.id} className="p-3 bg-gray-100 rounded text-gray-800">
+            {item.title}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

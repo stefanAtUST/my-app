@@ -48,3 +48,29 @@
 - Add a global utility: edit `app/globals.css` and rebuild if needed.
 
 If anything in this doc is unclear or you want more detail (tests, CI, or preferred PR style), tell me which part to expand and I'll iterate.
+
+## Generic Coding Instructions
+
+- Use generic package/Component names.
+
+## Evaluation Criteria
+
+- Must adopt clean code practices
+
+- Readability: Self-explanatory variable, method, and class names & Consistent formatting & style (indentation, spacing, naming conventions)
+
+- Low Cyclomatic complexity
+
+- Well-structured into small, reusable functions/classes
+
+- Low coupling, high cohesion
+
+- Single Responsibility Principle (each Component/class/function does one thing)
+
+- Uniform error handling strategy
+
+- Unit Test coverage > 70%
+
+- Minimal comments — the code itself explains intent
+
+- Use of latest React 18 features
