@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from "react";
+import usePagination from './hooks/usePagination';
+import Pagination from './components/Pagination';
 
 interface Item {
   id: number;
@@ -44,6 +46,16 @@ export default function Home() {
       item.title.toLowerCase().includes(debouncedQuery.toLowerCase())
     )
     : itemsToDisplay;
+
+  // Pagination (FE) for filtered items
+  const {
+    paginatedItems,
+    currentPage,
+    totalPages,
+    setPage,
+    pageSize,
+    setPageSize,
+  } = usePagination(filteredItems, 1, 10);
 
   // Checkbox selection helpers
   const allChecked = filteredItems.length > 0 && filteredItems.every((i) => i.completed === true);
@@ -96,14 +108,14 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="p-8">
+    <div className="p-8 app-bg min-h-screen">
       <div className="mb-6">
         <input
           type="text"
           placeholder="Search todos..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
         />
       </div>
 
@@ -118,15 +130,15 @@ export default function Home() {
           className="h-4 w-4"
           aria-label="Select all todos"
         />
-        <label htmlFor="top-toggle-checkbox" className="text-sm text-gray-700">Toggle all</label>
+        <label htmlFor="top-toggle-checkbox" className="text-sm muted">Toggle all</label>
       </div>
 
       <ul className="space-y-2">
         {state.status === 'idle' && <li>Idle: Waiting to start fetching data.</li>}
         {state.status === 'loading' && <li>Loading: Fetching data...</li>}
         {state.status === 'error' && <li>Error: There was a problem fetching data.</li>}
-        {state.status === 'success' && filteredItems.map((item) => (
-          <li key={item.id} className="p-3 bg-gray-100 rounded text-gray-800 flex items-center justify-between">
+        {state.status === 'success' && paginatedItems.map((item) => (
+          <li key={item.id} className="p-3 card rounded flex items-center justify-between">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
@@ -140,6 +152,16 @@ export default function Home() {
           </li>
         ))}
       </ul>
+      {/* Pagination controls */}
+      {state.status === 'success' && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p)}
+          pageSize={pageSize}
+          onPageSizeChange={(s) => setPageSize(s)}
+        />
+      )}
     </div>
   );
 }
