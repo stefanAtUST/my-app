@@ -3,6 +3,10 @@
 import { useEffect, useState, useRef } from "react";
 import usePagination from './hooks/usePagination';
 import Pagination from './components/Pagination';
+import SearchBar from './components/SearchBar';
+import AddTodoForm from './components/AddTodoForm';
+import TodoList from './components/TodoList';
+import SelectionInfo from './components/SelectionInfo';
 
 interface Item {
   id: number;
@@ -27,7 +31,6 @@ export default function Home() {
   const [newTodoTitle, setNewTodoTitle] = useState('');
   const [nextId, setNextId] = useState(201); // Start after API todos (1-200)
   const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const topCheckboxRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
@@ -70,13 +73,6 @@ export default function Home() {
   // Checkbox selection helpers
   const allChecked = filteredItems.length > 0 && filteredItems.every((i) => i.completed === true);
   const someChecked = filteredItems.some((i) => i.completed === true) && !allChecked;
-
-  // Keep the top checkbox indeterminate when partially selected
-  useEffect(() => {
-    if (topCheckboxRef.current) {
-      topCheckboxRef.current.indeterminate = someChecked;
-    }
-  }, [someChecked]);
 
   // Apply dark mode class to document root and save to localStorage
   useEffect(() => {
@@ -175,114 +171,51 @@ export default function Home() {
 
       {/* Search and Add todo form - separate left and right */}
       <div className="mb-6 flex gap-6 items-center">
-        <input
-          type="text"
-          placeholder="Search todos..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
+        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        <AddTodoForm value={newTodoTitle} onChange={setNewTodoTitle} onSubmit={handleAddTodo} />
+      </div>
+
+      {/* Selection info and toggle all */}
+      {state.status === 'success' && (
+        <SelectionInfo
+          checked={allChecked}
+          indeterminate={someChecked}
+          onChange={handleToggleAll}
+          selectedCount={filteredItems.filter((i) => i.completed).length}
+          totalCount={filteredItems.length}
         />
-        <form onSubmit={handleAddTodo} className="flex gap-2 flex-1">
-          <input
-            type="text"
-            placeholder="Add a new todo..."
-            value={newTodoTitle}
-            onChange={(e) => setNewTodoTitle(e.target.value)}
-            className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
-          />
-          <button
-            type="submit"
-            className="px-6 py-2 rounded-lg btn hover:opacity-80 transition font-medium"
-          >
-            Add
-          </button>
-        </form>
-      </div>
+      )}
 
-      {/* Top check/uncheck all - always show so user can check/uncheck all items */}
-      <div className="mb-4 flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <input
-            id="top-toggle-checkbox"
-            ref={topCheckboxRef}
-            type="checkbox"
-            checked={allChecked}
-            onChange={(e) => handleToggleAll(e.target.checked)}
-            className="h-4 w-4"
-            aria-label="Select all todos"
-          />
-          <label htmlFor="top-toggle-checkbox" className="text-sm muted">Toggle all</label>
-        </div>
-        {state.status === 'success' && (
-          <span className="text-sm muted">
-            {filteredItems.filter((i) => i.completed).length} of {filteredItems.length} selected
-          </span>
-        )}
-      </div>
-
-      <ul className="space-y-2">
-        {state.status === 'loading' && (
-          <div className="space-y-2">
-            {['a', 'b', 'c', 'd', 'e'].map((key) => (
-              <li key={key} className="card rounded p-3 h-12 bg-linear-to-r from-current via-gray-100 to-current dark:via-slate-800 bg-size-[200%_100%] animate-shimmer">
-              </li>
-            ))}
-          </div>
-        )}
-        {state.status === 'error' && (
-          <li className="card rounded p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700">
-            <div className="text-red-800 dark:text-red-100">
-              <h3 className="font-bold mb-2">❌ Failed to Load Todos</h3>
-              <p className="text-sm">
-                Unable to fetch the todo list. Please check your connection and try again.
-              </p>
-              <button
-                onClick={() => {
-                  setState({ status: 'idle' });
-                  // Re-fetch
-                  const fetchData = async () => {
-                    try {
-                      setState((prevState) => ({ ...prevState, status: 'loading' }));
-                      const response = await fetch('https://jsonplaceholder.typicode.com/todos');
-                      const responseJson = await response.json();
-                      setState((prevState) => ({ ...prevState, data: responseJson, status: 'success' }));
-                    } catch (error) {
-                      console.error('Error fetching data:', error);
-                      setState((prevState) => ({ ...prevState, status: 'error' }));
-                    }
-                  };
-                  fetchData();
-                }}
-                className="mt-3 px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
-              >
-                Retry
-              </button>
-            </div>
-          </li>
-        )}
-        {state.status === 'success' && paginatedItems.map((item) => (
-          <li key={item.id} className="p-3 card rounded flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              <input
-                type="checkbox"
-                checked={item.completed}
-                onChange={(e) => handleToggleItem(item.id, e.target.checked)}
-                className="h-4 w-4"
-                aria-label={`Toggle ${item.title}`}
-              />
-              <span className={item.completed ? 'line-through muted' : ''}>{item.title}</span>
-            </div>
-            <button
-              onClick={() => handleDeleteTodo(item.id)}
-              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-              aria-label={`Delete ${item.title}`}
-              title="Delete todo"
-            >
-              ✕
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* Todo list with loading, error, and empty states */}
+      {state.status === 'success' && (
+        <TodoList
+          items={paginatedItems}
+          onToggle={handleToggleItem}
+          onDelete={handleDeleteTodo}
+        />
+      )}
+      {state.status === 'loading' && <TodoList items={[]} isLoading />}
+      {state.status === 'error' && (
+        <TodoList
+          items={[]}
+          error="Unable to fetch todos"
+          onRetry={() => {
+            setState({ status: 'idle' });
+            const fetchData = async () => {
+              try {
+                setState((prevState) => ({ ...prevState, status: 'loading' }));
+                const response = await fetch('https://jsonplaceholder.typicode.com/todos');
+                const responseJson = await response.json();
+                setState((prevState) => ({ ...prevState, data: responseJson, status: 'success' }));
+              } catch (error) {
+                console.error('Error fetching data:', error);
+                setState((prevState) => ({ ...prevState, status: 'error' }));
+              }
+            };
+            fetchData();
+          }}
+        />
+      )}
       {/* Pagination controls */}
       {state.status === 'success' && (
         <Pagination
