@@ -1,19 +1,15 @@
 'use client';
 
-interface Item {
-    id: number;
-    title: string;
-    completed: boolean;
-    userId: number;
-}
+import type { Todo, ToggleHandler, DeleteHandler } from '@/app/types';
+import { FC } from 'react';
 
 interface TodoItemProps {
-    item: Item;
-    onToggle: (id: number, checked: boolean) => void;
-    onDelete: (id: number) => void;
+    item: Todo;
+    onToggle: ToggleHandler;
+    onDelete: DeleteHandler;
 }
 
-export default function TodoItem({ item, onToggle, onDelete }: TodoItemProps) {
+const TodoItem: FC<TodoItemProps> = ({ item, onToggle, onDelete }) => {
     return (
         <li className="p-3 card rounded flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
@@ -31,9 +27,12 @@ export default function TodoItem({ item, onToggle, onDelete }: TodoItemProps) {
                 className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                 aria-label={`Delete ${item.title}`}
                 title="Delete todo"
+                type="button"
             >
                 ✕
             </button>
         </li>
     );
-}
+};
+
+export default TodoItem;

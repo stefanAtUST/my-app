@@ -1,22 +1,23 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import type { ChangeHandler } from '@/app/types';
+import { useRef, useEffect, FC } from 'react';
 
 interface SelectionInfoProps {
     checked: boolean;
     indeterminate: boolean;
-    onChange: (checked: boolean) => void;
+    onChange: ChangeHandler<boolean>;
     selectedCount: number;
     totalCount: number;
 }
 
-export default function SelectionInfo({
+const SelectionInfo: FC<SelectionInfoProps> = ({
     checked,
     indeterminate,
     onChange,
     selectedCount,
     totalCount,
-}: SelectionInfoProps) {
+}) => {
     const checkboxRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
@@ -48,4 +49,6 @@ export default function SelectionInfo({
             )}
         </div>
     );
-}
+};
+
+export default SelectionInfo;

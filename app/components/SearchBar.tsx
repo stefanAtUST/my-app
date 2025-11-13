@@ -1,12 +1,15 @@
 'use client';
 
+import type { ChangeHandler } from '@/app/types';
+import { FC } from 'react';
+
 interface SearchBarProps {
     value: string;
-    onChange: (value: string) => void;
+    onChange: ChangeHandler<string>;
     placeholder?: string;
 }
 
-export default function SearchBar({ value, onChange, placeholder = 'Search todos...' }: SearchBarProps) {
+const SearchBar: FC<SearchBarProps> = ({ value, onChange, placeholder = 'Search todos...' }) => {
     return (
         <input
             type="text"
@@ -16,4 +19,6 @@ export default function SearchBar({ value, onChange, placeholder = 'Search todos
             className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-css"
         />
     );
-}
+};
+
+export default SearchBar;

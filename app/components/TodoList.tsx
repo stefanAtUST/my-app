@@ -1,31 +1,26 @@
 'use client';
 
 import TodoItem from './TodoItem';
-
-interface Item {
-    id: number;
-    title: string;
-    completed: boolean;
-    userId: number;
-}
+import type { Todo, ToggleHandler, DeleteHandler, VoidFunction } from '@/app/types';
+import { FC, ReactElement } from 'react';
 
 interface TodoListProps {
-    items: Item[];
-    onToggle?: (id: number, checked: boolean) => void;
-    onDelete?: (id: number) => void;
+    items: Todo[];
+    onToggle?: ToggleHandler;
+    onDelete?: DeleteHandler;
     isLoading?: boolean;
     error?: string;
-    onRetry?: () => void;
+    onRetry?: VoidFunction;
 }
 
-export default function TodoList({
+const TodoList: FC<TodoListProps> = ({
     items,
     onToggle,
     onDelete,
     isLoading = false,
     error,
     onRetry,
-}: TodoListProps) {
+}): ReactElement => {
     if (isLoading) {
         return (
             <ul className="space-y-2">
@@ -54,6 +49,7 @@ export default function TodoList({
                             <button
                                 onClick={onRetry}
                                 className="mt-3 px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
+                                type="button"
                             >
                                 Retry
                             </button>
@@ -72,16 +68,26 @@ export default function TodoList({
         );
     }
 
+    const handleToggle: ToggleHandler = (id, checked) => {
+        onToggle?.(id, checked);
+    };
+
+    const handleDelete: DeleteHandler = (id) => {
+        onDelete?.(id);
+    };
+
     return (
         <ul className="space-y-2">
             {items.map((item) => (
                 <TodoItem
                     key={item.id}
                     item={item}
-                    onToggle={onToggle || (() => { })}
-                    onDelete={onDelete || (() => { })}
+                    onToggle={handleToggle}
+                    onDelete={handleDelete}
                 />
             ))}
         </ul>
     );
-}
+};
+
+export default TodoList;

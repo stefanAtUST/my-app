@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export type UsePaginationReturn<T> = {
     currentPage: number;
@@ -15,8 +15,8 @@ export type UsePaginationReturn<T> = {
 
 export default function usePagination<T>(
     items: T[],
-    initialPage = 1,
-    initialPageSize = 10
+    initialPage: number = 1,
+    initialPageSize: number = 10
 ): UsePaginationReturn<T> {
     const [currentPage, setCurrentPage] = useState(() =>
         Math.max(1, initialPage)

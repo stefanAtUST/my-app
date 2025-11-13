@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from 'react';
+import type { Todo, AsyncState } from '@/app/types';
 import usePagination from './hooks/usePagination';
 import Pagination from './components/Pagination';
 import SearchBar from './components/SearchBar';
@@ -8,21 +9,8 @@ import AddTodoForm from './components/AddTodoForm';
 import TodoList from './components/TodoList';
 import SelectionInfo from './components/SelectionInfo';
 
-interface Item {
-  id: number;
-  title: string;
-  completed: boolean;
-  userId: number;
-}
-
-type State<T> =
-  | { status: 'idle'; }
-  | { status: 'loading'; }
-  | { status: 'error'; }
-  | { status: 'success'; data: T };
-
 export default function Home() {
-  const [state, setState] = useState<State<Item[]>>({
+  const [state, setState] = useState<AsyncState<Todo[]>>({
     status: 'idle',
   });
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,7 +104,7 @@ export default function Home() {
 
     setState((prev) => {
       if (prev.status !== 'success') return prev;
-      const newTodo: Item = {
+      const newTodo: Todo = {
         id: nextId,
         title: newTodoTitle.trim(),
         completed: false,
@@ -142,7 +130,7 @@ export default function Home() {
       try {
         setState((prevState) => ({ ...prevState, status: 'loading' }));
         const response = await fetch('https://jsonplaceholder.typicode.com/todos');
-        const responseJson = await response.json();
+        const responseJson: Todo[] = await response.json();
         setState((prevState) => ({ ...prevState, data: responseJson, status: 'success' }));
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -150,10 +138,10 @@ export default function Home() {
       } finally {
         console.log('Fetch attempt finished.');
       }
-    }
+    };
 
     fetchData();
-  }, [])
+  }, []);
 
   return (
     <div className="p-8 app-bg min-h-screen">

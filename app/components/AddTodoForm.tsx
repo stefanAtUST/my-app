@@ -1,20 +1,23 @@
 'use client';
 
+import type { ChangeHandler, SubmitHandler } from '@/app/types';
+import { FC } from 'react';
+
 interface AddTodoFormProps {
     value: string;
-    onChange: (value: string) => void;
-    onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    onChange: ChangeHandler<string>;
+    onSubmit: SubmitHandler;
     placeholder?: string;
     buttonText?: string;
 }
 
-export default function AddTodoForm({
+const AddTodoForm: FC<AddTodoFormProps> = ({
     value,
     onChange,
     onSubmit,
     placeholder = 'Add a new todo...',
     buttonText = 'Add',
-}: AddTodoFormProps) {
+}) => {
     return (
         <form onSubmit={onSubmit} className="flex gap-2 flex-1">
             <input
@@ -32,4 +35,6 @@ export default function AddTodoForm({
             </button>
         </form>
     );
-}
+};
+
+export default AddTodoForm;
