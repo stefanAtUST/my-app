@@ -23,8 +23,16 @@ export default function Home() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [darkMode, setDarkMode] = useState<boolean | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const topCheckboxRef = useRef<HTMLInputElement | null>(null);
+
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    const stored = localStorage.getItem('darkMode');
+    const isDark = stored === 'true' || (stored === null && globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
+    setDarkMode(isDark);
+  }, []);
 
   // Debounce search query
   useEffect(() => {
@@ -68,6 +76,21 @@ export default function Home() {
     }
   }, [someChecked]);
 
+  // Apply dark mode class to document root and save to localStorage
+  useEffect(() => {
+    if (darkMode === null) return;
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', String(darkMode));
+  }, [darkMode]);
+
+  const handleToggleTheme = () => {
+    setDarkMode((prev) => (prev === null ? true : !prev));
+  };
+
   const handleToggleAll = (checked: boolean) => {
     setState((prev) => {
       if (prev.status !== 'success') return prev;
@@ -109,6 +132,18 @@ export default function Home() {
 
   return (
     <div className="p-8 app-bg min-h-screen">
+      {/* Header with theme toggle */}
+      <header className="mb-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Todos</h1>
+        <button
+          onClick={handleToggleTheme}
+          className="px-4 py-2 rounded-lg btn hover:opacity-80 transition"
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? '☀️ Light' : '🌙 Dark'}
+        </button>
+      </header>
+
       <div className="mb-6">
         <input
           type="text"
@@ -120,17 +155,24 @@ export default function Home() {
       </div>
 
       {/* Top check/uncheck all - always show so user can check/uncheck all items */}
-      <div className="mb-4 flex items-center gap-2">
-        <input
-          id="top-toggle-checkbox"
-          ref={topCheckboxRef}
-          type="checkbox"
-          checked={allChecked}
-          onChange={(e) => handleToggleAll(e.target.checked)}
-          className="h-4 w-4"
-          aria-label="Select all todos"
-        />
-        <label htmlFor="top-toggle-checkbox" className="text-sm muted">Toggle all</label>
+      <div className="mb-4 flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <input
+            id="top-toggle-checkbox"
+            ref={topCheckboxRef}
+            type="checkbox"
+            checked={allChecked}
+            onChange={(e) => handleToggleAll(e.target.checked)}
+            className="h-4 w-4"
+            aria-label="Select all todos"
+          />
+          <label htmlFor="top-toggle-checkbox" className="text-sm muted">Toggle all</label>
+        </div>
+        {state.status === 'success' && (
+          <span className="text-sm muted">
+            {filteredItems.filter((i) => i.completed).length} of {filteredItems.length} selected
+          </span>
+        )}
       </div>
 
       <ul className="space-y-2">
