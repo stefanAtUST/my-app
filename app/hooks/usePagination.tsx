@@ -28,11 +28,11 @@ export default function usePagination<T>(
     }, [items.length, pageSize]);
 
     // Reset to page 1 when the source items change (e.g. after search/filter)
-    useEffect(() => {
-        // Schedule state update as a callback to avoid synchronous setState in effect
-        const timer = setTimeout(() => setCurrentPage(1), 0);
-        return () => clearTimeout(timer);
-    }, [items]);
+    // useEffect(() => {
+    //     // Schedule state update as a callback to avoid synchronous setState in effect
+    //     const timer = setTimeout(() => setCurrentPage(1), 0);
+    //     return () => clearTimeout(timer);
+    // }, [items]);
 
     // Clamp page for safe calculations
     const clampedPage = Math.min(Math.max(1, currentPage), totalPages);

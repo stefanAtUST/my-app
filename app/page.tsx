@@ -176,9 +176,45 @@ export default function Home() {
       </div>
 
       <ul className="space-y-2">
-        {state.status === 'idle' && <li>Idle: Waiting to start fetching data.</li>}
-        {state.status === 'loading' && <li>Loading: Fetching data...</li>}
-        {state.status === 'error' && <li>Error: There was a problem fetching data.</li>}
+        {state.status === 'loading' && (
+          <div className="space-y-2">
+            {['a', 'b', 'c', 'd', 'e'].map((key) => (
+              <li key={key} className="card rounded p-3 h-12 bg-linear-to-r from-current via-gray-100 to-current dark:via-slate-800 bg-size-[200%_100%] animate-shimmer">
+              </li>
+            ))}
+          </div>
+        )}
+        {state.status === 'error' && (
+          <li className="card rounded p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700">
+            <div className="text-red-800 dark:text-red-100">
+              <h3 className="font-bold mb-2">❌ Failed to Load Todos</h3>
+              <p className="text-sm">
+                Unable to fetch the todo list. Please check your connection and try again.
+              </p>
+              <button
+                onClick={() => {
+                  setState({ status: 'idle' });
+                  // Re-fetch
+                  const fetchData = async () => {
+                    try {
+                      setState((prevState) => ({ ...prevState, status: 'loading' }));
+                      const response = await fetch('https://jsonplaceholder.typicode.com/todos');
+                      const responseJson = await response.json();
+                      setState((prevState) => ({ ...prevState, data: responseJson, status: 'success' }));
+                    } catch (error) {
+                      console.error('Error fetching data:', error);
+                      setState((prevState) => ({ ...prevState, status: 'error' }));
+                    }
+                  };
+                  fetchData();
+                }}
+                className="mt-3 px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          </li>
+        )}
         {state.status === 'success' && paginatedItems.map((item) => (
           <li key={item.id} className="p-3 card rounded flex items-center justify-between">
             <div className="flex items-center gap-3">
